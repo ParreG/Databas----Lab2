@@ -15,6 +15,8 @@ public partial class Staff
 
     public int Salary { get; set; }
 
+    public DateTime EmployedDate { get; set; } //Denna är ny jämfört med Lab3
+
     public virtual ICollection<Class> Classes { get; set; } = new List<Class>();
 
     public virtual ICollection<Course> Courses { get; set; } = new List<Course>();

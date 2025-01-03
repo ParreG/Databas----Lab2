@@ -27,7 +27,6 @@ namespace Databas____Lab2
                 }
             }
         }
-
         public static int ValidNumberInput(int min, int max)
         {
             string choosenNumber = Console.ReadLine();
@@ -51,7 +50,6 @@ namespace Databas____Lab2
             }
             return choice;
         }
-
         public static double ConvertGradeToNumeric(string grade)
         {
             return grade switch
@@ -65,19 +63,55 @@ namespace Databas____Lab2
             };
         }
 
-            public static void MainMenu()
+        public static void DisplayStaffInformation(IEnumerable<dynamic> staffList, string category)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"Antal anställda i denna kategori är: {staffList.Count()}");
+            Console.WriteLine($"Denna kategor består av {category}");
+            Console.WriteLine("Vill du se deras information?");
+            string answer = ValidStringInput("Svara med 'Ja' eller 'Nej' ").ToLower();
+
+            while (true)
+            {
+                if (answer == "ja")
+                {
+                    foreach (var staff in staffList)
+                    {
+                        Console.WriteLine($"\nAnställdens namn: {staff.StaffName}\nEfternamn: {staff.StaffLastName}\nJobbtitel: {staff.JobTitle}");
+                        Console.WriteLine();
+                    }
+                    Console.WriteLine("Tryck på Enter för att gå vidare....");
+                    Console.ReadLine();
+                    
+                    break;
+                }
+                else if (answer == "nej")
+                {
+                    break;
+                }
+                else
+                {
+                    answer = ValidStringInput("Svara med 'Ja' eller 'Nej' ").ToLower();
+                }
+            }
+        } // Denna är ny
+
+        public static void MainMenu()
         {
             while (true)
             {
+                Console.Clear();
+
                 Console.WriteLine("Hej och välkommen till huvudmenyn!");
                 Console.WriteLine("Välj det alternativet du vill genom att skriva tillhörande siffra och tryck på Enter!");
                 Console.WriteLine("1. Anställda!");
                 Console.WriteLine("2. Elever!");
                 Console.WriteLine("3. Betyg!");
-                Console.WriteLine("4. Avsluta.");
+                Console.WriteLine("4. Kurser!"); // Denna är ny
+                Console.WriteLine("5. Avsluta.");
                 Console.Write("Ditt val: ");
 
-                int choice = ValidNumberInput(1, 4);
+                int choice = ValidNumberInput(1, 5);
 
                 switch (choice)
                 {
@@ -90,7 +124,11 @@ namespace Databas____Lab2
                     case 3:
                         GradeMenu();
                         break;
+
                     case 4:
+                        CoursesMenu();
+                        break;
+                    case 5:
                         Console.WriteLine("Programmet avslutas!");
                         Thread.Sleep(2000);
                         Console.Clear();
@@ -104,42 +142,62 @@ namespace Databas____Lab2
             }
         }
 
-        // Meny med 3 val, för att visa, lägga till och visa specifika anställda. KLAR
         public static void StaffMenu() 
         {
-            Console.Clear();
             using (var context = new DatabasLab2Context())
             {
-                // Hämta en viss kategori
+
                 bool openMenu = true;
 
                 while (openMenu)
                 {
+                    Console.Clear();
                     Console.WriteLine("Vad vill du göra?");
                     Console.WriteLine("1. Visa alla anställda.");
                     Console.WriteLine("2. Lägg till en ny anställd.");
                     Console.WriteLine("3. Visa en viss kategori av alla anställda!");
-                    Console.WriteLine("4. HuvudMeny");
+                    Console.WriteLine("4. Hur många lärare jobbar på de olika avdelningarna?"); //DENNA ÄR NY!
+                    Console.WriteLine("5. HuvudMeny");
                     Console.Write("Ditt val: ");
 
-                    int choice = ValidNumberInput(1, 4);
+                    int choice = ValidNumberInput(1, 5);
 
                     switch (choice)
                     {
                         case 1: //Klar
+                            Console.Clear();
+                            DateTime now = DateTime.Now;
                             Console.WriteLine("Visar alla anställda:");
 
                             var allStaff = context.Staff
-                            .Select(s => new { s.StaffName, s.StaffLastName, s.JobTitle })
+                            .Select(s => new { s.StaffName, s.StaffLastName, s.JobTitle, s.EmployedDate })
+
                             .ToList();
                             foreach (var staff in allStaff)
                             {
-                                Console.WriteLine($"\nAnstäldens namn: {staff.StaffName}\n Efternamn: {staff.StaffLastName}\n  Jobtitel: {staff.JobTitle}");
+                                Console.WriteLine($"\nAnställdens namn: {staff.StaffName}" +
+                                                    $"\nEfternamn: {staff.StaffLastName}" +
+                                                    $"\nJobbtitel: {staff.JobTitle}");
+
+
+
+                                // DENNA DEL ÄR NY! VISAR NÄR MAN ANSTÄLLDES OCH HUR LÄNGE PERSONEN HAR VARIT ANSTÄLLD!!!
+                                int yearsEmployed = now.Year - staff.EmployedDate.Year;
+
+                                if (now < staff.EmployedDate.AddYears(yearsEmployed))
+                                {
+                                    yearsEmployed--;
+                                }
+
+                                Console.WriteLine($"Anställningsdatum: {staff.EmployedDate:yyyy-MM-dd}" +
+                                                  $"\nAntal år anställd: {yearsEmployed} år");
                                 Console.WriteLine();
                             }
 
                             break;
+                      
                         case 2: //Klar
+                            Console.Clear();
                             Console.WriteLine("Nu ska du få lägga till en ny anställd!");
 
                             
@@ -176,7 +234,19 @@ namespace Databas____Lab2
                             break;
 
                         case 3:
-                            string jobTitleChoice = ValidStringInput("Här kan du välja en specifik kategori för att visa all personal bara inom den kategorin!\n Vilken kategori vill du se?").ToLower();
+                            Console.Clear();
+                            Console.WriteLine("Här kan du välja en specifik kategori för att visa all personal bara inom den kategorin!");
+                            Console.WriteLine("För att hjälpa dig mer så är detta alla de kategorier som finns!");
+                            Console.WriteLine();
+                            Console.WriteLine("Jobbtitlar:");
+                            Console.WriteLine("IT-samordnare, Lärare, Studievägledare, Projektledare, IT-tekniker,");
+                            Console.WriteLine("Bibliotekarie, Skolsköterska, HR-chef, Kurator, Studiekoordinator,");
+                            Console.WriteLine("Administratör, Specialpedagog, Rektor, Ekonom, Kökschef,");
+                            Console.WriteLine("Elevassistent, Vaktmästare, Vägg-Ansvarig, Städerska.");
+                            Console.WriteLine();
+
+                            string jobTitleChoice = ValidStringInput("Vilken av dessa väljer du? Skriv in ditt svar nedan!").ToLower();
+
                             var jobTitleCategori = context.Staff
                                 .Where(j =>  j.JobTitle == jobTitleChoice)
                                 .Select(j => new { j.StaffName, j.StaffLastName, j.JobTitle});
@@ -186,10 +256,87 @@ namespace Databas____Lab2
                                 Console.WriteLine($"\nAnstäldens namn: {staff.StaffName}\n Efternamn: {staff.StaffLastName}\n Jobtitel: {staff.JobTitle}");
                                 Console.WriteLine();
                             }
+                            Console.WriteLine("Tryck Enter för att gå vidare....");
+                            Console.ReadLine();
+                            break;
+
+                        case 4: // DENNA CASE ÄR NY!!!!
+                            Console.Clear();
+                            Console.WriteLine("Nedan kan du se vilka olika kategorier som finns! Skriv den tillhörande siffran,\n" +
+                                "och tryck på ENTER för att se hur många som arbetar i den avdelningen!");
+
+                            Console.WriteLine("1. Lärarteamet!"); //Lärare, Specialpedagog, Elevassistent, Bibliotekarie
+                            Console.WriteLine("2. IT-Avdelning!"); // It-samordnare, It-Tekniker
+                            Console.WriteLine("3. Elevhälsa!"); // Kurator, Skolsköterska, Studievägledare, Studiekoordinator,
+                            Console.WriteLine("4. Administration och ledning!"); //Adminstratör, projektledare, HR-chef, Ekonom, Rektor
+                            Console.WriteLine("5. Support och drift!"); // Vaktmästare, Vägg-Ansvarig, Städerska, Kökschef
+                            Console.Write("Ditt svar: ");
+
+                            int option = ValidNumberInput(1, 5);
+
+                            if (option == 1)
+                            {
+                                var countStaff = context.Staff
+                                     .Where(j => j.JobTitle == "Lärare" ||
+                                            j.JobTitle == "Specialpedagog" ||
+                                            j.JobTitle == "Elevassistent" ||
+                                            j.JobTitle == "Bibliotekarie")
+                                    .Select(l => new { l.StaffName, l.StaffLastName, l.JobTitle })
+                                    .ToList();
+
+                                DisplayStaffInformation(countStaff, "Lärare, Specialpedagoger, Elevassistenter och Bibliotekarie.");
+
+                            }
+                            else if (option == 2)
+                            {
+                                var itStaff = context.Staff
+                                    .Where(j => j.JobTitle == "It-samordnare" ||
+                                           j.JobTitle == "It-Tekniker")
+                                    .Select(l => new { l.StaffName, l.StaffLastName, l.JobTitle })
+                                    .ToList();
+
+                                DisplayStaffInformation(itStaff, "It-samordnare och It-Tekniker.");
+                            }
+                            else if (option == 3)
+                            {
+                                var studentHealth = context.Staff
+                                    .Where(j => j.JobTitle == "Kurator" ||
+                                           j.JobTitle == "Skolsköterska" ||
+                                           j.JobTitle == "Studievägledare" ||
+                                           j.JobTitle == "Studiekoordinator")
+                                    .Select(l => new { l.StaffName, l.StaffLastName, l.JobTitle })
+                                    .ToList();
+
+                                DisplayStaffInformation(studentHealth, "Kurator, Skolsköterska, Studievägledare och Studiekoordinator.");
+                            }
+                            else if (option == 4)
+                            {
+                                var adminstration = context.Staff
+                                    .Where(j => j.JobTitle == "Adminstratör" ||
+                                           j.JobTitle == "Projektledare" ||
+                                           j.JobTitle == "HR-chef" ||
+                                           j.JobTitle == "Ekonom" ||
+                                           j.JobTitle == "Rektor")
+                                    .Select(l => new { l.StaffName, l.StaffLastName, l.JobTitle })
+                                    .ToList();
+                                DisplayStaffInformation(adminstration, "Adminstratör, projektledare, HR-chef, Ekonom och Rektorn");
+                            }
+                            else if (option == 5)
+                            {
+                                var support = context.Staff
+                                    .Where (j => j.JobTitle == "Vaktmästare" ||
+                                                 j.JobTitle == "Vägg-Ansvarig" ||
+                                                 j.JobTitle == "Städerska" ||
+                                                 j.JobTitle == "Kökschef")
+                                    .Select ( l => new { l.StaffName, l.StaffLastName, l.JobTitle })
+                                    .ToList();
+                                DisplayStaffInformation(support, "Lärarteamet");
+                            }
+                            
 
                             break;
 
-                        case 4:
+                        case 5:
                             Console.WriteLine("Skickar dig tillbaka till huvud Menyn!");
                             Console.WriteLine("Laddar...");
                             openMenu = false;
@@ -204,25 +351,21 @@ namespace Databas____Lab2
 
         public static void StudentMenu()
         {
-            // Elever meny
-            // Hämta alla elever /Sortera på för eller efternamn, Asc eller Desc?
-            // Hämta alla elever i en viss klass
-            // Lägg till nya elever
             bool openMenu = true;
             using (var Context = new DatabasLab2Context())
             { 
-                Console.Clear();
+
                 while (openMenu)
                 {
+                    Console.Clear();
                     Console.WriteLine("Meny för elver!");
                     Console.WriteLine("1. Hämta alla elever!");
                     Console.WriteLine("2. Lägg till nya elever!");
                     Console.WriteLine("3. Hämta alla elever i en viss klass!");
-                    Console.WriteLine("4. Gör rent menyn!");
-                    Console.WriteLine("5. Tillbaka till huvudmenyn!");
+                    Console.WriteLine("4. Tillbaka till huvudmenyn!");
                     
                     Console.Write("Ditt val: ");
-                    int choice = ValidNumberInput(1, 5);
+                    int choice = ValidNumberInput(1, 4);
                     switch (choice)
                     {
                         case 1:
@@ -232,30 +375,54 @@ namespace Databas____Lab2
                             Console.WriteLine("1. Bokstavsordning genom förnamn!");
                             Console.WriteLine("2. Bokstavsorning genom efternamn!");
                             Console.Write("Ditt svar: ");
+
                             int menuChoice = ValidNumberInput(1, 2);
 
                             if (menuChoice == 1)
                             {
-                                var allStudents = Context.Students
-                                .OrderBy(s => s.StudentName)
-                                .Select(s => new { s.StudentName, s.StudentLastName});
+                                var allStudentsWithClasses = Context.Students
+                                    .Join(Context.Classes,
+                                          student => student.ClassIdFk,
+                                          classInfo => classInfo.ClassId,
+                                          (student, classInfo) => new
+                                          {
+                                              student.StudentName,
+                                              student.StudentLastName,
+                                              classInfo.ClassName
+                                          })
+                                    .OrderBy(s => s.StudentName);
 
-                                foreach (var student in allStudents)
+                                foreach (var student in allStudentsWithClasses)
                                 {
-                                    Console.WriteLine($"\nStudent Namne: {student.StudentName}\n Student Efternamn: {student.StudentLastName}\n");
+                                    Console.WriteLine($"\nStudent Namn: {student.StudentName}" +
+                                                      $"\nStudent Efternamn: {student.StudentLastName}" +
+                                                      $"\nKlass: {student.ClassName}\n");
                                 }
                             }
                             else if (menuChoice == 2)
                             {
-                                var allStudents = Context.Students
-                                .OrderBy(s => s.StudentLastName)
-                                .Select(s => new { s.StudentName, s.StudentLastName });
+                                var allStudentsWithClasses = Context.Students
+                                    .Join(Context.Classes,
+                                          student => student.ClassIdFk,
+                                          classInfo => classInfo.ClassId,
+                                          (student, classInfo) => new
+                                          {
+                                              student.StudentName,
+                                              student.StudentLastName,
+                                              classInfo.ClassName
+                                          })
+                                    .OrderBy(s => s.StudentLastName);
 
-                                foreach (var student in allStudents)
+                                foreach (var student in allStudentsWithClasses)
                                 {
-                                    Console.WriteLine($"\nStudent Namne: {student.StudentName}\n Student Efternamn: {student.StudentLastName}\n");
+                                    Console.WriteLine($"\nStudent Namn: {student.StudentName}" +
+                                                      $"\nStudent Efternamn: {student.StudentLastName}" +
+                                                      $"\nKlass: {student.ClassName}\n");
                                 }
                             }
+
+                            Console.WriteLine("Tryck Enter för att fortsätta tillbaka till menyn!");
+                            Console.ReadLine();
 
                             break;
 
@@ -285,7 +452,10 @@ namespace Databas____Lab2
                             Context.Students.Add(addNewStudent);
                             Context.SaveChanges();
 
+                            Console.WriteLine("Tryck Enter för att fortsätta tillbaka till menyn!");
+                            Console.ReadLine();
                             break;
+
                         case 3:
                             Console.WriteLine("Nedan ser du alla klassar som finns:\n");
                             var viewAllClasses = Context.Classes
@@ -319,13 +489,12 @@ namespace Databas____Lab2
                             {
                                 Console.WriteLine($"\nStudent Namn: {student.StudentName}\nStudent Efternamn: {student.StudentLastName}\nKlass namn: {student.ClassName}\n");
                             }
+
+                            Console.WriteLine("Tryck Enter för att fortsätta tillbaka till menyn!");
+                            Console.ReadLine();
                             break;
 
                         case 4:
-                            Console.Clear();
-                            break;
-
-                        case 5:
                             Console.WriteLine("Skickar dig tillbaka till huvud Menyn!");
                             Console.WriteLine("Laddar...");
                             openMenu = false;
@@ -334,6 +503,29 @@ namespace Databas____Lab2
                             break;
                     }
                 }
+            }
+        }
+
+        public static void CoursesMenu()
+        {
+            Console.Clear();
+
+            using (var Context = new DatabasLab2Context())
+            {
+                var allCourses = Context.Courses
+                    .Select(j => new { j.CourseName })
+                    .ToList();
+                Console.WriteLine("Visar alla kurser: ");
+                Console.WriteLine();
+
+                foreach (var course in allCourses)
+                {
+                    Console.WriteLine($"Kurs namn: {course.CourseName}");
+                    Console.WriteLine();
+                }
+
+                Console.WriteLine("Tryck Enter för att gå tillbaka till menyn...");
+                Console.ReadLine();
             }
         }
 
@@ -464,9 +656,28 @@ namespace Databas____Lab2
                 }
             }
         }
+
         static void Main(string[] args)
         {
             MainMenu();
         }
+        /*Lista på det som är ny för det individuella projektet i VS jämfört med Labb3!!
+         * 
+         * Ny DisplayStaffInformation funktion som gör min kod enklare och mer lättläst så jag inte behöver upprepa koden flera gånger.
+         * 
+         * I MainMenu har jag lagt till ny meny alternativ för att visa alla kurser på nummer 4!
+         Den har i sin tu en egen funktion som heter CousesMenu som också är ny!
+         *
+         * I StaffMenu, alternativ 1 där programmet ska visa anställda har jag lagt in ny funktion för att se hur länge en person har varit anställd.
+         För att detta ska vara möjligt uppdaterade jag min databas där jag la in ett anställningsdatum på alla anställda. 
+         *
+         * Case 4 är också ny i StaffMenu. Det gör det nu möjligt för användaren att se anställda som arbetar inom en specifik del i skolan, som lärare eller ledning.
+         För att göra detta skapade jag 5 olika avdelningar i skolan som användaren får välja mellan. Läs mer om det på rad 267 - 272!
+         */
+
+
+
+
+
     }
 }
